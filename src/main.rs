@@ -34,14 +34,54 @@ mod test {
         let list = Cons(1, Box::new(Nil));
     }
 
+    fn hello(name: &str) {
+        println!("Hello {name}");
+    }
+
     #[test]
     fn demo_15_2() {
         let x = 5;
         let y = Box::new(x);
         assert_eq!(5, x);
         assert_eq!(5, *y);
+
+        let m = Box::new(String::from("rust"));
+        hello(&m);
     }
 
+
+    struct MyBox<T>(T);
+
+    impl<T> MyBox<T> {
+        fn new(x: T) -> MyBox<T> {
+            MyBox(x)
+        }
+    }
+
+    use std::ops::Deref;
+
+    impl<T> Deref for MyBox<T> {
+        type Target = T;
+
+        // fn deref(&self) -> &Self::Target {
+        //     &self.0
+        // }
+        fn deref(&self) -> &T {
+            &self.0
+        }
+    }
+
+    #[test]
+    fn test_custom_smart_pointer() {
+        let x = 5;
+        let y = MyBox::new(x);
+
+        assert_eq!(5, x);
+        assert_eq!(5, *y);
+
+        let m = MyBox::new(String::from("rust"));
+        hello(&m);
+    }
 }
 
 // fn main() {
