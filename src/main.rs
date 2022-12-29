@@ -84,6 +84,30 @@ mod test {
     }
 }
 
+#[cfg(test)]
+
+mod test2 {
+    use std::rc::Rc;
+    use crate::test2::List::{Cons, Nil};
+
+    enum List {
+        Cons(i32, Rc<List>),
+        Nil
+    }
+
+    #[test]
+    fn test_rc_type() {
+        let a = Rc::new(Cons(5, Rc::new(Cons(10, Rc::new(Nil)))));
+        println!("count after creating a = {}", Rc::strong_count(&a));
+        {
+            let b = Cons(3, Rc::clone(&a));
+            println!("count after creating b = {}", Rc::strong_count(&a));
+            let c = Cons(4, Rc::clone(&a));
+            println!("count after creating c = {}", Rc::strong_count(&a));
+        }
+        println!("count after leave scope = {}", Rc::strong_count(&a));
+    }
+}
 // fn main() {
 //
 //     let v = vec![1, 2, 3];
