@@ -246,6 +246,7 @@ mod test3 {
 
 #[cfg(test)]
 mod test_concurrent {
+    use std::sync::mpsc;
     use std::thread;
     use std::time::Duration;
 
@@ -264,6 +265,18 @@ mod test_concurrent {
         }
 
         handle.join().unwrap();
+    }
+
+    #[test]
+    fn test_mpsc() {
+        let (tx, rx) = mpsc::channel();
+        thread::spawn(move || {
+           let val = String::from("hello");
+            tx.send(val).unwrap();
+        });
+
+        let received = rx.recv().unwrap();
+        println!("Got: {}", received);
     }
 }
 // fn main() {
