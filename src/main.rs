@@ -246,7 +246,7 @@ mod test3 {
 
 #[cfg(test)]
 mod test_concurrent {
-    use std::sync::mpsc;
+    use std::sync::{Arc, mpsc};
     use std::thread;
     use std::time::Duration;
 
@@ -271,12 +271,94 @@ mod test_concurrent {
     fn test_mpsc() {
         let (tx, rx) = mpsc::channel();
         thread::spawn(move || {
-           let val = String::from("hello");
-            tx.send(val).unwrap();
+            // let val = String::from("hello");
+            let vals = vec![
+                String::from("hi"),
+                String::from("from"),
+                String::from("the"),
+                String::from("thread"),
+            ];
+            // tx.send(val).unwrap();
+
+            for val in vals {
+                tx.send(val).unwrap();
+                thread::sleep(Duration::from_secs(1))
+            }
         });
 
-        let received = rx.recv().unwrap();
-        println!("Got: {}", received);
+        for received in rx {
+            println!("Got {}", received)
+        }
+    }
+
+    #[test]
+    fn test_multi_producer() {
+        let (tx, rx) = mpsc::channel();
+        let tx1 = tx.clone();
+
+        thread::spawn(move || {
+            let vals = vec![
+                String::from("hi"),
+                String::from("from"),
+                String::from("the"),
+                String::from("thread"),
+            ];
+
+            for val in vals {
+                tx1.send(val).unwrap();
+                thread::sleep(Duration::from_secs(1));
+            }
+        });
+
+        thread::spawn(move || {
+            let vals = vec![
+                String::from("more"),
+                String::from("messages"),
+                String::from("for"),
+                String::from("you"),
+            ];
+
+            for val in vals {
+                tx.send(val).unwrap();
+                thread::sleep(Duration::from_secs(1));
+            }
+        });
+
+        for received in rx {
+            println!("Got: {}", received);
+        }
+
+    }
+
+    use std::sync::Mutex;
+
+    #[test]
+    fn test_shared_memory_concurrency() {
+        let m = Mutex::new(5);
+        {
+            let mut num = m.lock().unwrap();
+            *num = 6;
+        }
+
+        println!("m = {:?}", m);
+
+        let counter = Arc::new(Mutex::new(0));
+        let mut handles = vec![];
+        for _ in 0..10 {
+            let counter = Arc::clone(&counter);
+
+            let handle = thread::spawn(move || {
+                let mut num = counter.lock().unwrap();
+                *num += 1
+            });
+            handles.push(handle);
+        }
+
+        for handle in handles {
+            handle.join().unwrap();
+        }
+
+        println!("Result: {}", *counter.lock().unwrap());
     }
 }
 // fn main() {
