@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 datafusion = "11.0"
 tokio = "1.0"
+polars = "0.26.1"

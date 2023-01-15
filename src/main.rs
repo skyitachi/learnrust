@@ -19,6 +19,39 @@ async fn main() -> datafusion::error::Result<()> {
 }
 
 #[cfg(test)]
+mod polars_test {
+    use polars::prelude::*;
+    use polars::frame::*;
+
+    #[test]
+    fn run_series_example() {
+        let s: Series = (0..10).map(Some).collect();
+        println!("series s1 = {}", s);
+        let s = Series::new("foo", &[1, 2, 3]);
+        println!("series s2 = {}", s);
+
+        let ca = UInt32Chunked::new("foo", &[Some(1), None, Some(3)]);
+        let s = ca.into_series();
+
+        println!("series s3 = {}", s);
+    }
+
+    #[test]
+    fn run_dataframe_example() {
+        let df = DataFrame::default();
+        assert!(df.is_empty());
+
+        {
+            let s1 = Series::new("Fruit", &["Apple", "Apple", "Pear"]);
+            let s2 = Series::new("Color", &["Red", "Yellow", "Green"]);
+
+            let df: PolarsResult<DataFrame> = DataFrame::new(vec![s1, s2]);
+        }
+
+    }
+}
+
+#[cfg(test)]
 mod test {
     use crate::test::List::{Cons, Nil};
 
