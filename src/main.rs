@@ -409,6 +409,31 @@ mod test_concurrent {
 //     }
 // }
 
+#[cfg(test)]
+mod test_openal {
+    use opendal::Operator;
+    use opendal::Object;
+
+    #[tokio::main]
+    async fn test_openal_hdfs() -> Result<(), E>{
+        let mut builder = Hdfs::default();
+        // Set the name node for hdfs.
+        builder.name_node("hdfs://127.0.0.1:9000");
+        // Set the root for hdfs, all operations will happen under this root.
+        //
+        // NOTE: the root must be absolute path.
+        builder.root("/tmp");
+
+        // `Accessor` provides the low level APIs, we will use `Operator` normally.
+        let op: Operator = Operator::create(builder)?.finish();
+
+        // Create an object handle to start operation on object.
+        let _: Object = op.object("test_file");
+
+        Ok(())
+    }
+}
+
 fn handle_connection(mut stream: TcpStream) {
     let buf_reader = BufReader::new(&mut stream);
     let http_request: Vec<_> = buf_reader
