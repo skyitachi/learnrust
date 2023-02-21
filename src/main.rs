@@ -411,26 +411,29 @@ mod test_concurrent {
 
 #[cfg(test)]
 mod test_openal {
-    use opendal::Operator;
-    use opendal::Object;
+}
 
-    #[tokio::main]
-    async fn test_openal_hdfs() -> Result<(), E>{
-        let mut builder = Hdfs::default();
-        // Set the name node for hdfs.
-        builder.name_node("hdfs://127.0.0.1:9000");
-        // Set the root for hdfs, all operations will happen under this root.
-        //
-        // NOTE: the root must be absolute path.
-        builder.root("/tmp");
 
-        // `Accessor` provides the low level APIs, we will use `Operator` normally.
-        let op: Operator = Operator::create(builder)?.finish();
+#[cfg(test)]
+mod test_bitpacking {
 
-        // Create an object handle to start operation on object.
-        let _: Object = op.object("test_file");
+    use bitpacking::{BitPacker4x, BitPacker, BitPacker1x};
+    use datafusion::parquet::data_type::AsBytes;
+    use polars::export::arrow::compute::arithmetics::mul;
 
-        Ok(())
+    #[test]
+    fn bitpacking_demo() {
+        let bitpacker = BitPacker4x::new();
+        let mut my_data = [0u32; 128];
+        for i in 0..128 {
+            my_data[i] = i as u32;
+        }
+        let num_bits: u8 = bitpacker.num_bits(&my_data);
+        let mut compressed = vec![0u8; 4 * BitPacker4x::BLOCK_LEN];
+        let compressed_len =
+            bitpacker.compress(&my_data, &mut compressed[..], num_bits);
+
+        println!("compress len: {}", compressed_len);
     }
 }
 
