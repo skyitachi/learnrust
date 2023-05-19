@@ -15,6 +15,15 @@ async fn main() -> datafusion::error::Result<()> {
 
     // execute and print results
     df.show().await?;
+
+    let df2 = ctx.read_csv("tests/example.csv", CsvReadOptions::new()).await?;
+
+    df2.filter(col("a").lt_eq(col("b")))?
+        .aggregate(vec![col("a")], vec![min(col("b"))])?
+        .limit(Some(0), Some(100))?;
+
+    df2.show().await?;
+
     Ok(())
 }
 
