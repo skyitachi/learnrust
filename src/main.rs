@@ -457,3 +457,168 @@ fn handle_connection(mut stream: TcpStream) {
     let response = "HTTP/1.1 200 OK\r\n\r\n";
     stream.write_all(response.as_bytes()).unwrap()
 }
+
+// #[cfg(test)]
+// mod test_lance {
+//     use std::env::temp_dir;
+//     use datafusion::arrow::record_batch::RecordBatchReader;
+//     use ::lance::dataset::Dataset;
+//     use ::lance::dataset::WriteParams;
+//     use std::sync::Arc;
+//     use arrow::array::{FixedSizeListArray, Float32Array, Array, ArrayDataBuilder};
+//     use arrow::datatypes::{DataType, Field, Schema as ArrowSchema};
+//     use std::iter::repeat_with;
+//     use arrow::datatypes::DataType::FixedSizeList;
+//     use arrow::record_batch::RecordBatch;
+//     use lance::arrow::RecordBatchBuffer;
+//     use rand::prelude::*;
+
+//     pub fn generate_random_array(n: usize) -> Float32Array {
+//         let mut rng = rand::thread_rng();
+//         Float32Array::from(
+//             repeat_with(|| rng.gen::<f32>())
+//                 .take(n)
+//                 .collect::<Vec<f32>>(),
+//         )
+//     }
+
+//     #[derive(Debug)]
+//     pub enum Error {
+//         Arrow(String),
+//         Schema(String),
+//         IO(String),
+//         Index(String),
+//         /// Stream early stop
+//         Stop(),
+//     }
+
+//     pub type Result<T> = std::result::Result<T, Error>;
+
+//     pub trait FixedSizeListArrayExt {
+//         /// Create an [`FixedSizeListArray`] from values and list size.
+//         ///
+//         /// ```
+//         /// use arrow_array::{Int64Array, FixedSizeListArray};
+//         /// use arrow_array::types::Int64Type;
+//         /// use lance::arrow::FixedSizeListArrayExt;
+//         ///
+//         /// let int_values = Int64Array::from_iter(0..10);
+//         /// let fixed_size_list_arr = FixedSizeListArray::try_new(int_values, 2).unwrap();
+//         /// assert_eq!(fixed_size_list_arr,
+//         ///     FixedSizeListArray::from_iter_primitive::<Int64Type, _, _>(vec![
+//         ///         Some(vec![Some(0), Some(1)]),
+//         ///         Some(vec![Some(2), Some(3)]),
+//         ///         Some(vec![Some(4), Some(5)]),
+//         ///         Some(vec![Some(6), Some(7)]),
+//         ///         Some(vec![Some(8), Some(9)])
+//         /// ], 2))
+//         /// ```
+//         fn try_new<T: Array>(values: T, list_size: i32) -> Result<FixedSizeListArray>;
+//     }
+
+//     impl FixedSizeListArrayExt for FixedSizeListArray {
+//         fn try_new<T: Array>(values: T, list_size: i32) -> Result<Self> {
+//             let list_type = DataType::FixedSizeList(
+//                 Arc::new(Field::new("item", values.data_type().clone(), true)),
+//                 list_size,
+//             );
+//             let data = ArrayDataBuilder::new(list_type)
+//                 .len(values.len() / list_size as usize)
+//                 .add_child_data(values.into_data())
+//                 .build()?;
+
+//             Ok(Self::from(data))
+//         }
+//     }
+
+//     #[tokio::test]
+//     async fn test_lance() {
+//         let test_dir = temp_dir();
+
+//         let mut write_params = WriteParams::default();
+
+//         let dimension = 16;
+
+//         let schema = Arc::new(ArrowSchema::new(vec![Field::new(
+//             "embeddings",
+//             DataType::FixedSizeList(
+//                 Arc::new(Field::new("item", DataType::Float32, true)),
+//                 dimension,
+//             ),
+//             false,
+//         )]));
+
+//         let float_arr = generate_random_array(512 * dimension as usize);
+//         let vectors = Arc::new(FixedSizeListArray::try_new(
+//             float_arr, dimension).unwrap());
+
+//         let batches = RecordBatchBuffer::new(vec![RecordBatch::try_new(
+//             schema.clone(),
+//             vec![vectors.clone()],
+//         ).unwrap()]);
+
+//         let mut reader: Box<dyn RecordBatchReader<Item=()>> = Box::new(batches);
+
+
+//     }
+
+// }
+
+
+#[cfg(test)]
+mod test_arrow {
+
+    use arrow::array::{Int32Array, StringArray};
+    use arrow::datatypes::{Field, Schema};
+    use arrow::ipc::writer::FileWriter;
+    use arrow::ipc::reader::FileReader;
+    use arrow::record_batch::RecordBatch;
+    use arrow::util::pretty;
+    use std::fs::File;
+    use std::sync::Arc;
+
+    #[test]
+    fn basic_arrow_demo() {
+        let schema = Schema::new(vec![
+            Field::new("name", arrow::datatypes::DataType::Utf8, false),
+            Field::new("age", arrow::datatypes::DataType::Int32, false),
+        ]);
+
+        let name = StringArray::from(vec!["Alice", "Bob", "Charlie"]);
+
+        let age = Int32Array::from(vec![25, 30, 35]);
+
+        let batch = RecordBatch::try_new(Arc::new(schema), vec![
+            Arc::new(name) as Arc<dyn arrow::array::Array>,
+            Arc::new(age) as Arc<dyn arrow::array::Array>,
+        ])
+        .unwrap();
+        
+        let path = "example.arrow";
+
+        let file = File::create(path).unwrap();
+        
+        let mut writer = FileWriter::try_new(file, &batch.schema()).unwrap();
+
+        writer.write(&batch).unwrap();
+
+        writer.finish().unwrap();
+
+        let file = File::open(path).unwrap();
+        let reader = FileReader::try_new(file, Some(vec![0, 1])).unwrap();
+
+        let mut batches = Vec::new();
+
+        for batch in reader {
+            let batch = batch.unwrap();
+            batches.push(batch);
+        }
+        
+        // for batch in batches {
+        //     pretty::print_batches(&[batch]).unwrap();
+        // }
+
+        pretty::print_batches(batches.as_slice()).unwrap();
+    }
+
+}

@@ -5,3 +5,4 @@ log
 *.log
 tests
 .vscode
+example.arrow

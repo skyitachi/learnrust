@@ -7,7 +7,10 @@ edition = "2021"
 
 [dependencies]
 datafusion = "11.0"
-tokio = "1.0"
+tokio = { version = "1.23", features = [ "rt-multi-thread"]}
 polars = "0.26.1"
 opendal = "0.20.0"
 bitpacking = "0.8.4"
+lance = "0.4.15"
+arrow = { version = "37.0.0", features = ["prettyprint"] }
+rand = "0.8.5"
