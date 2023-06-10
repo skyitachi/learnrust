@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate tantivy;
 use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
 use std::thread;
@@ -621,4 +623,71 @@ mod test_arrow {
         pretty::print_batches(batches.as_slice()).unwrap();
     }
 
+}
+
+
+#[cfg(test)]
+mod test_tantivy {
+
+
+    use tantivy::collector::TopDocs;
+    use tantivy::Index;
+    use tantivy::query::QueryParser;
+    use tantivy::schema::*;
+    use tantivy::schema::Type::I64;
+    use tempfile::TempDir;
+    use tantivy::ReloadPolicy;
+
+
+    #[test]
+    fn tantivy_demo() -> tantivy::Result<()> {
+        let index_path = TempDir::new()?;
+
+        let mut schema_builder = Schema::builder();
+
+        schema_builder.add_i64_field("id", NumericOptions::default().set_indexed().set_stored());
+        schema_builder.add_facet_field("catid", FacetOptions::default().set_stored());
+
+        schema_builder.add_text_field("name", TextOptions::default().set_stored());
+        schema_builder.add_text_field("pname", TextOptions::default().set_stored());
+
+        let schema = schema_builder.build();
+
+        let index = Index::create_in_dir(&index_path, schema.clone()).unwrap();
+
+        let mut index_writer = index.writer(50_000_000).unwrap();
+
+        let id = schema.get_field("id").unwrap();
+        let catid = schema.get_field("catid").unwrap();
+        let name = schema.get_field("name").unwrap();
+        let pname = schema.get_field("pname").unwrap();
+
+        let mut doc = Document::default();
+
+        doc.add_i64(id, 1000);
+        doc.add_i64(id, 10001);
+
+        index_writer.add_document(doc)?;
+
+        index_writer.commit()?;
+        // doc.add_facet(catid, );
+
+        let reader = index
+            .reader_builder()
+            .reload_policy(ReloadPolicy::OnCommit)
+            .try_into()?;
+
+        let searcher = reader.searcher();
+        let query_parser = QueryParser::for_index(&index, vec![id]);
+
+        let query = query_parser.parse_query("10001")?;
+
+        let top_docs = searcher.search(&query, &TopDocs::with_limit(2)).unwrap();
+
+        for (_score, doc_address) in top_docs {
+            let retrieved_doc = searcher.doc(doc_address)?;
+            println!("{}", schema.to_json(&retrieved_doc));
+        }
+        Ok(())
+    }
 }
