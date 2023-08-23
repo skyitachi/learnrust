@@ -16,3 +16,4 @@ arrow = { version = "37.0.0", features = ["prettyprint"] }
 rand = "0.8.5"
 tantivy = "0.20.0"
 tempfile = "3.6.0"
+futures = "0.3.28"
