@@ -691,3 +691,46 @@ mod test_tantivy {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod test_demo_snippets {
+
+    #[test]
+    fn run_enum_demo() {
+        enum Book {
+            Papery {
+                name: String,
+                price: u32,
+                author: String,
+            },
+            Electronic {
+                name: String,
+                url: String,
+                author: String,
+                filetype: String,
+            },
+        }
+        let book = Book::Papery { name: String::from("rust"), price: 20, author: String::from("abc") };
+        let ebok: Book = Book::Electronic {
+            name:String::from("elec"), 
+            url: String::from("abc.com"), 
+            author: String::from("author abc"), 
+            filetype: String::from("a"),
+        };
+        match book {
+            Book::Papery { name, price, author } => {
+                println!(
+                    "Papery book name: {}, price:{} author: {}",
+                    name, price, author
+                );
+            }
+            Book::Electronic { name, url, author, filetype } => {
+                println!(
+                    "E-book name: {} url:{} author: {} filetype:{}",
+                    name, url, author, filetype
+                );
+            }
+        }
+        
+    }
+}
