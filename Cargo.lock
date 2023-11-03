@@ -2378,6 +2378,7 @@ dependencies = [
  "arrow 37.0.0",
  "bitpacking",
  "datafusion 11.0.0",
+ "futures",
  "ijson",
  "lance",
  "opendal",
