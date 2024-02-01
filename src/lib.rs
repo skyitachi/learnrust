@@ -1,6 +1,8 @@
 mod garden;
 mod concurrency;
 
+mod vart;
+
 use crate::garden::Garden;
 use crate::garden::vegetables::Vegetables;
 
