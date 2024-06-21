@@ -734,3 +734,91 @@ mod test_demo_snippets {
         
     }
 }
+
+#[cfg(test)]
+mod option_demo {
+    use std::num::ParseIntError;
+
+    #[test]
+    fn run_option_demo() {
+        let x = Some(32);
+
+        let y = match x {
+            None => 0,
+            Some(v) => v * 2
+        };
+
+        println!("x: {:?}, y: {}", x, y)
+    }
+
+    // fn multiply(first_number_str: &str, second_number_str: &str) -> i32 {
+    //     // Let's try using `unwrap()` to get the number out. Will it bite us?
+    //     let first_number = first_number_str.parse::<i32>().unwrap();
+    //     let second_number = second_number_str.parse::<i32>().unwrap();
+    //     first_number * second_number
+    // }
+
+    fn multiply(first_number_str: &str, second_number_str: &str) -> Result<i32, ParseIntError> {
+        match first_number_str.parse::<i32>() {
+            Ok(first_number)  => {
+                match second_number_str.parse::<i32>() {
+                    Ok(second_number)  => {
+                        Ok(first_number * second_number)
+                    },
+                    Err(e) => Err(e),
+                }
+            },
+            Err(e) => Err(e),
+        }
+    }
+
+    fn print(result: Result<i32, ParseIntError>) {
+        match result {
+            Ok(n)  => println!("n is {}", n),
+            Err(e) => println!("Error: {}", e),
+        }
+    }
+
+
+    #[test]
+    fn run_result_demo() {
+        let twenty = multiply("10", "2");
+        println!("double is {:?}", twenty);
+
+        let tt = multiply("t", "2");
+        print(tt);
+    }
+
+    type AliasedResult<T> = Result<T, ParseIntError>;
+
+    fn print2(result: AliasedResult<i32>) {
+        match result {
+            Ok(n) => println!("n is {}", n),
+            Err(e) => println!("Error is {}", e)
+        }
+    }
+
+    fn multiply2(first: &str, second: &str) -> AliasedResult<i32> {
+        first.parse::<i32>().and_then(|first_number| {
+            second.parse::<i32>().map(|second_numer| first_number * second_numer)
+        })
+    }
+
+    #[test]
+    fn run_result_demo2() {
+        print2(multiply2("10", "2"));
+        print2(multiply2("t","100"));
+
+        print2(multiply3("100", "2"));
+        print2(multiply3("t1", "3"));
+    }
+
+    fn multiply3(first: &str, second: &str) -> AliasedResult<i32> {
+        let first_number = first.parse::<i32>()?;
+        let second_number = second.parse::<i32>()?;
+
+        Ok(first_number * second_number)
+    }
+
+
+}
