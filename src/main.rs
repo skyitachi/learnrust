@@ -811,11 +811,21 @@ mod option_demo {
 
         print2(multiply3("100", "2"));
         print2(multiply3("t1", "3"));
+
+        print2(multiply4("100", "20"));
+        print2(multiply4("t2", "20"));
     }
 
     fn multiply3(first: &str, second: &str) -> AliasedResult<i32> {
         let first_number = first.parse::<i32>()?;
         let second_number = second.parse::<i32>()?;
+
+        Ok(first_number * second_number)
+    }
+
+    fn multiply4(first: &str, second: &str) -> AliasedResult<i32> {
+        let first_number = r#try!(first.parse::<i32>());
+        let second_number = r#try!(second.parse::<i32>());
 
         Ok(first_number * second_number)
     }
