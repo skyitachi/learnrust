@@ -738,6 +738,7 @@ mod test_demo_snippets {
 #[cfg(test)]
 mod option_demo {
     use std::num::ParseIntError;
+    use std::panic::catch_unwind;
 
     #[test]
     fn run_option_demo() {
@@ -828,6 +829,38 @@ mod option_demo {
         let second_number = r#try!(second.parse::<i32>());
 
         Ok(first_number * second_number)
+    }
+
+    fn drink(beverage: &str) {
+        if beverage == "lemonade" {
+            panic!("AAAaaa!!");
+        }
+        println!("Some refreshing {} is all i need.", beverage);
+    }
+
+    fn drink2(beverage: &str) {
+        if beverage == "lemonade" {
+            if cfg!(panic = "abort") {
+                println!("This is not your party. Run !!!");
+            } else {
+                println!("Spit it out!!!");
+            }
+        } else {
+            println!("Some refreshing {} is all I need.", beverage);
+        }
+    }
+
+    #[test]
+    fn run_panic_demo() {
+        drink("water");
+        let result = catch_unwind(|| {
+            drink("lemonade");
+        });
+        match result {
+            Ok(_) => println!("normal"),
+            Err(e) => println!("panic: {:?}", e),
+        }
+        drink("still water");
     }
 
 
