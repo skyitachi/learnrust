@@ -862,6 +862,17 @@ mod option_demo {
         }
         drink("still water");
     }
+    #[test]
+    fn ref_demo() {
+        let x = 5;
+        let y = &x;
+    
+        assert_eq!(5, x);
+        assert_eq!(5, *y);
 
 
+        let sp = Box::new(x);
+
+        assert_eq!(x, *sp);
+    }
 }
