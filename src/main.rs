@@ -870,6 +870,14 @@ mod option_demo {
         assert_eq!(5, x);
         assert_eq!(5, *y);
 
+    #[test]
+    fn run_clone_demo() {
+        let s1 = String::from("abc");
+        let s2 = s1;
+        // cannot use s1 any more
+        // println!("s1 len after clone: {}", s1.len());
+    }
+
 
         let sp = Box::new(x);
 
